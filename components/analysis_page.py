@@ -1,13 +1,21 @@
 import streamlit as st
-import cv2
-import numpy as np
+# import cv2  # Temporarily commented out
+# import numpy as np  # Temporarily commented out
 from PIL import Image
 import pandas as pd
 from datetime import datetime
 import random
+from auth import require_login, current_user
+from ui import render_top_nav
 
 def show_analysis_page():
     st.markdown('<h2 class="section-header">🤖 AI Analysis</h2>', unsafe_allow_html=True)
+    # Require authentication
+    require_login()
+    user = current_user()
+    if user:
+        st.caption(f"Logged in as @{user['username']} ({user['email']})")
+    st.divider()
     
     # Check if media is uploaded
     if 'uploaded_media' not in st.session_state or not st.session_state.uploaded_media:
@@ -316,5 +324,4 @@ def display_analysis_summary():
         
         st.bar_chart(severity_df.set_index('Severity'))
 
-# Ensure the page renders when used in Streamlit's multipage mode
-show_analysis_page()
+# Note: This function should only be called from the main app router, not at module level

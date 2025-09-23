@@ -4,9 +4,17 @@ import numpy as np
 from PIL import Image
 import tempfile
 import os
+from auth import require_login, current_user
+from ui import render_top_nav
 
 def show_upload_page():
     st.markdown('<h2 class="section-header">📤 Media Upload</h2>', unsafe_allow_html=True)
+    # Require authentication to access this page
+    require_login()
+    user = current_user()
+    if user:
+        st.caption(f"Logged in as @{user['username']} ({user['email']})")
+    st.divider()
     
     # Upload options
     upload_option = st.radio(
@@ -214,5 +222,4 @@ def create_sample_image(image_type):
     
     return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
-# Ensure the page renders when used in Streamlit's multipage mode
-show_upload_page()
+# Note: This function should only be called from the main app router, not at module level
