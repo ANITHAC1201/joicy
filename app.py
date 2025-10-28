@@ -13,8 +13,8 @@ from components._login import show_login_page
 
 # Page config and modern design system
 st.set_page_config(
-    page_title="FLYSCOPE | Tamil Nadu Grid", 
-    page_icon="🚁", 
+    page_title="INFRA-SCOPE – Smart Damage Detection for Safer Infrastructure | Tamil Nadu Grid", 
+    page_icon="🏗️", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -196,8 +196,8 @@ st.markdown(
     """
     <div style="text-align: center; padding: 2rem 0; margin-bottom: 2rem;">
         <div class="pill">Tamil Nadu Grid</div>
-        <h1 class="hero-title">🚁 Drone-based Infrastructure Inspection</h1>
-        <p class="hero-subtitle">Smart AI assistance for power-line towers, substations, and corridors</p>
+        <h1 class="hero-title">🏗️ INFRA-SCOPE – Smart Damage Detection for Safer Infrastructure</h1>
+        <p class="hero-subtitle">AI-powered damage detection for safer, smarter infrastructure monitoring</p>
     </div>
     """,
     unsafe_allow_html=True
@@ -450,7 +450,7 @@ def show_home_page():
         st.subheader("How to Use this Application")
         st.markdown(
             """
-            1. Upload drone imagery or video in the FLYSCOPE main app (sidebar → Navigation → "📤 Media Upload").
+            1. Upload drone imagery or video in the INFRA-SCOPE main app (sidebar → Navigation → "📤 Media Upload").
             2. Choose AI models (crack/corrosion/thermal/vegetation) and run analysis ("🤖 AI Analysis").
             3. Review detections and export a PDF/CSV report ("📊 Results & Reports").
             4. Visualize fault distribution on the map and plan maintenance ("🗺️ Fault Mapping").

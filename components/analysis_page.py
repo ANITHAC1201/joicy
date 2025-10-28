@@ -1,6 +1,16 @@
 import streamlit as st
-# import cv2  # Temporarily commented out
-# import numpy as np  # Temporarily commented out
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+
 from PIL import Image
 import pandas as pd
 from datetime import datetime
@@ -171,9 +181,14 @@ def analyze_single_file(file_info):
     # Load image for analysis
     try:
         if file_info['type'].startswith('image'):
-            img = cv2.imread(file_info['path'])
-            if img is not None:
-                results['detections'] = simulate_defect_detection(img, file_info['name'])
+            if CV2_AVAILABLE:
+                img = cv2.imread(file_info['path'])
+                if img is not None:
+                    results['detections'] = simulate_defect_detection(img, file_info['name'])
+            else:
+                # Use PIL as fallback
+                pil_img = Image.open(file_info['path'])
+                results['detections'] = simulate_defect_detection_pil(pil_img, file_info['name'])
         else:
             # For video files, simulate frame-by-frame analysis
             results['detections'] = simulate_video_analysis(file_info['path'])
@@ -181,6 +196,46 @@ def analyze_single_file(file_info):
         st.error(f"Error analyzing {file_info['name']}: {str(e)}")
     
     return results
+
+def simulate_defect_detection_pil(pil_img, filename):
+    """Simulate AI defect detection on a PIL image (fallback when cv2 not available)"""
+    
+    detections = []
+    width, height = pil_img.size
+    
+    # Simulate detections based on selected models
+    for model_name in st.session_state.selected_models:
+        # Generate random detections based on model type
+        num_detections = random.randint(0, 2)  # Fewer detections in fallback mode
+        
+        for _ in range(num_detections):
+            # Random bounding box
+            x1 = random.randint(0, width // 2)
+            y1 = random.randint(0, height // 2)
+            x2 = random.randint(x1 + 50, min(x1 + 200, width))
+            y2 = random.randint(y1 + 50, min(y1 + 200, height))
+            
+            # Random confidence score
+            confidence = random.uniform(
+                st.session_state.confidence_threshold,
+                1.0
+            )
+            
+            # Determine defect type and severity
+            defect_info = get_defect_info(model_name, confidence)
+            
+            detection = {
+                'model': model_name,
+                'defect_type': defect_info['type'],
+                'confidence': confidence,
+                'bbox': [x1, y1, x2, y2],
+                'severity': defect_info['severity'],
+                'description': defect_info['description']
+            }
+            
+            detections.append(detection)
+    
+    return detections
 
 def simulate_defect_detection(img, filename):
     """Simulate AI defect detection on an image"""
@@ -314,14 +369,51 @@ def display_analysis_summary():
             if severity in severity_counts:
                 severity_counts[severity] += 1
     
-    if any(severity_counts.values()):
+    # Display charts in columns
+    chart_col1, chart_col2 = st.columns(2)
+    
+    with chart_col1:
         st.subheader("🚨 Severity Breakdown")
         
-        severity_df = pd.DataFrame(
-            list(severity_counts.items()),
-            columns=['Severity', 'Count']
+        if any(severity_counts.values()):
+            severity_df = pd.DataFrame(
+                list(severity_counts.items()),
+                columns=['Severity', 'Count']
+            )
+            st.bar_chart(severity_df.set_index('Severity'))
+        else:
+            st.info("No severity data available yet. Run analysis to see breakdown.")
+    
+    with chart_col2:
+        st.subheader("🎯 Model Accuracy")
+        
+        # Get accuracy data from the models defined in show_model_selection
+        model_accuracies = {
+            "Crack Detection": 94.2,
+            "Corrosion Detection": 91.8, 
+            "Thermal Anomaly": 96.5,
+            "Vegetation Risk": 89.3,
+            "Structural Damage": 92.7
+        }
+        
+        # Filter to only show selected models, or show all if none selected
+        if 'selected_models' in st.session_state and st.session_state.selected_models:
+            selected_accuracies = {
+                model: accuracy for model, accuracy in model_accuracies.items() 
+                if model in st.session_state.selected_models
+            }
+        else:
+            # Show default models if none selected
+            selected_accuracies = {
+                "Crack Detection": 94.2,
+                "Corrosion Detection": 91.8
+            }
+        
+        accuracy_df = pd.DataFrame(
+            list(selected_accuracies.items()),
+            columns=['Model', 'Accuracy (%)']
         )
         
-        st.bar_chart(severity_df.set_index('Severity'))
+        st.bar_chart(accuracy_df.set_index('Model'))
 
 # Note: This function should only be called from the main app router, not at module level
